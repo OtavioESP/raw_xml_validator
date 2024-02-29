@@ -15,7 +15,7 @@ Just a quick raw validator for XML files, made for a college work.
 This file represents the functional version, not just a validation of a specific XML, but of any valid XML. The only issue is that the data written in the final txt file may be somewhat "buggy". So feel free to create your XML to test! :3
 
 ### XML Validation Rules
-1. It needs to have a father tag wich contains the whole file.
+1. It needs to have a father tag which contains the whole file.
 2. All tags need to open and close at the same depth.
 
 ### Example XML
