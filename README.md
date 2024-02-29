@@ -1,5 +1,5 @@
 # raw_xml_validator
-Just a quick validator for XML files, made for the college.
+Just a quick raw validator for XML files, made for a college work.
 
 ### Information
 - Python Version: 3.10.x
