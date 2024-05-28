@@ -1,20 +1,27 @@
 
-class ValidateXML:
+class RawValidateXML:
+    '''
+    This class aims to validate the .XML file.
+    If you want the .XML to be just validated within himself,
+    call run() without any paramethers.
+    If you want a return file with the validated data,
+    call run(true) or run(write_response=True).
+    '''
     def __init__(self):
         self.FILE_PATH = "./teste.xml"
-        self.FINAL_FILE_PATH = "./arquivo_final.txt"
+        self.FINAL_FILE_PATH = "./final_file.txt"
         self.FINAL_DATA = ""
 
-    def sanitize_tag(self, tag: str, remove_dash: bool) -> str:
+    def _sanitize_tag(self, tag: str, remove_dash: bool) -> str:
         return tag.strip("\n").strip(" ")
 
-    def check_father_tags(self, tags: list) -> bool:
+    def _check_father_tags(self, tags: list) -> bool:
         if f'{tags[0].replace("<", "</")}'== tags[ len(tags) - 1 ]:
             return True
         raise ValueError("Elements not inside root tag")
 
 
-    def check_all_tags_close(self, tags: list) -> bool:
+    def _check_all_tags_close(self, tags: list) -> bool:
         open_tags_list = []
         close_tags_list = []
 
@@ -32,7 +39,7 @@ class ValidateXML:
 
         return True
 
-    def check_all_tags_open(self, tags: list) -> bool:
+    def _check_all_tags_open(self, tags: list) -> bool:
         open_tags_list = []
         close_tags_list = []
 
@@ -49,7 +56,7 @@ class ValidateXML:
 
         return True
 
-    def check_children_tags(self, tags: list) -> bool:
+    def _check_children_tags(self, tags: list) -> bool:
         tags_depth = {}
         depth_counter = 0
 
@@ -69,7 +76,6 @@ class ValidateXML:
 
             if not all(["<" in tag,  ">"in tag]) and not "</" in tag:
                 self.FINAL_DATA += f'{tag}\n '
-
         for tag in tags_depth:
             if "<"in tag and not "</" in tag:
                 if tags_depth[tag] == tags_depth[tag.replace("<", "</")]:
@@ -86,23 +92,25 @@ class ValidateXML:
         tag_list = []
         lines = open(self.FILE_PATH, 'r').readlines()
         for l in lines:
-            sanitized_tag = self.sanitize_tag(l, False)
+            sanitized_tag = self._sanitize_tag(l, False)
             tag_list.append(sanitized_tag)
 
         return tag_list
 
 
-    def run(self):
+    def run(self, write_response=False) -> bool:
         tags = self.read_file()
 
-        if all([self.check_father_tags(tags), self.check_all_tags_close(tags), self.check_all_tags_open(tags), self.check_children_tags(tags)]):
+        if all([self._check_father_tags(tags), self._check_all_tags_close(tags), self._check_all_tags_open(tags), self._check_children_tags(tags)]):
             print(15*'=-=')
             print('VALIDATED !!!')
             print(15*'=-=')
-            self.write_txt()
+
+            if write_response:
+                self.write_txt()
+
+            print(self.FINAL_DATA)
+            return True
         else:
             print('An error ocurred on validation !')
-
-        print(self.FINAL_DATA)
-
-validar = ValidateXML().run()
+            return False
