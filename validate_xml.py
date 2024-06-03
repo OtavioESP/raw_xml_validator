@@ -96,12 +96,8 @@ class ValidateXML:
                     raise ValueError(f'A Tag {tag_name} não possui um tipo de dado {xsd_tag_type}')
 
         for key in self.XSD_DATA:
-
             if key not in validation_dict:
                 raise ValueError(f'Tag {key} não existente no XML')
-            else:
-                if not validation_dict[key]['profundidade'] == self.XSD_DATA[key]['profundidade']:
-                    raise ValueError(f'Profundidade da tag {key} não é a mesma citada no XSD')
 
         return True
 
