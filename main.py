@@ -6,4 +6,4 @@ raw_xml_validation = RawValidateXML().run()
 
 if raw_xml_validation:
     xsd_data = ValidateXSD().run()
-    xml_data = ValidateXML(xsd_data).run()
+    ValidateXML(xsd_data).run()

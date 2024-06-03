@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 class ValidateXML:
@@ -32,19 +33,38 @@ class ValidateXML:
 
         return self._TagType.NOT_A_TAG
 
-    def _validate_data_type(self, referred_type: str, data: Any) -> bool:
+    def _validate_data_type(self, referred_type: str, data: str) -> bool:
         '''
         Validate if the referred data type in xsd is right or not
         '''
-        try:
-            if  referred_type == ' xs: byte':
-                int(data)
-            if  referred_type == ' xs: float':
-                float(data)
+        if referred_type == 'xs:byte':
+            try:
+                int_value = int(data)
+                return True
+            except ValueError:
+                return False
 
-            return True
-        except ValueError:
+        elif referred_type == 'xs:float':
+            try:
+                float(data)
+                return True
+            except ValueError:
+                return False
+
+        elif referred_type == 'xs:string':
+            if isinstance(data, str):
+                if re.fullmatch(r'^-?\d+(\.\d+)?$', data):
+                    return False
+                else:
+                    return True
+
+        else:
             return False
+
+
+    def _validate_depth(self, depth: int, tag_name: str) -> None:
+        if not depth == self.XSD_DATA[tag_name]['profundidade']:
+            raise ValueError(f'A tag {tag_name} não possui uma a mesma profundidade do que o XSD.')
 
 
     def _validate_by_xsd(self, tags: list) -> bool:
@@ -55,22 +75,33 @@ class ValidateXML:
 
         for key, value in enumerate(tags):
 
-
             if self._identify_value(value) == self._TagType.OPEN:
                 tag_name = self._clear_tag(value)
+                self._validate_depth(depth_counter, tag_name)
                 validation_dict[tag_name] = dict(profundidade=depth_counter)
                 depth_counter += 1
 
             if self._identify_value(value) == self._TagType.CLOSE:
                 tag_name = self._clear_tag(value)
                 depth_counter -= 1
+                self._validate_depth(depth_counter, tag_name)
                 validation_dict[tag_name] = dict(profundidade=depth_counter)
 
             if self._identify_value(value) == self._TagType.NOT_A_TAG:
-                if not self._validate_data_type(self.XSD_DATA[tag_name]['tipo'], value):
-                    return False
+                xsd_tag_type = self.XSD_DATA[tag_name]['tipo']
 
-            # TODO: VALIDACAO FINAL
+                if self._validate_data_type(xsd_tag_type, value):
+                    continue
+                else:
+                    raise ValueError(f'A Tag {tag_name} não possui um tipo de dado {xsd_tag_type}')
+
+        for key in self.XSD_DATA:
+
+            if key not in validation_dict:
+                raise ValueError(f'Tag {key} não existente no XML')
+            else:
+                if not validation_dict[key]['profundidade'] == self.XSD_DATA[key]['profundidade']:
+                    raise ValueError(f'Profundidade da tag {key} não é a mesma citada no XSD')
 
         return True
 
@@ -83,15 +114,19 @@ class ValidateXML:
 
         return tag_list
 
-
-    def run(self):
+    def run(self) -> bool:
         tags = self.read_file()
-
-        if self._validate_by_xsd(tags):
+        try:
+            self._validate_by_xsd(tags)
             print(15*'=-=')
             print('VALIDATED !!!')
             print(15*'=-=')
-        else:
-            print('INVALID XML FILE !')
+            return True
 
-        return
+        except ValueError as exc:
+            print(exc)
+            return False
+
+        except KeyError as exc:
+            print(f'A tag {exc} não foi compreendida pelo XSD.')
+            return False

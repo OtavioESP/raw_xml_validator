@@ -21,18 +21,20 @@ class ValidateXSD:
             if '</xs:element' not in value:
                 # Tag pai
                 if 'xs:element' in value and "/>" not in value:
-                    nome = re.search(r'name = "(.*?)"', value).group(1)
+                    nome = re.search(r'name="(.*?)"', value).group(1)
                     tag_info = dict(profundidade=profundidade, tipo='tag_pai')
                     lista[nome] = tag_info
                     profundidade += 1
 
                 # Tag filha
                 elif 'xs:element' in value and "/>" in value:
-                        nome = re.search(r'name = "(.*?)"', value).group(1)
-                        tipo = re.search(r'type = "(.*?)"', value).group(1)
+                    try:
+                        nome = re.search(r'name="(.*?)"', value).group(1)
+                        tipo = re.search(r'type="(.*?)"', value).group(1)
                         tag_info = dict(profundidade=profundidade, tipo=tipo)
                         lista[nome] = tag_info
-
+                    except AttributeError:
+                        breakpoint()
 
                 else:
                     continue

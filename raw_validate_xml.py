@@ -101,7 +101,12 @@ class RawValidateXML:
     def run(self, write_response=False) -> bool:
         tags = self.read_file()
 
-        if all([self._check_father_tags(tags), self._check_all_tags_close(tags), self._check_all_tags_open(tags), self._check_children_tags(tags)]):
+        if all([
+            self._check_father_tags(tags),
+            self._check_all_tags_close(tags),
+            self._check_all_tags_open(tags),
+            self._check_children_tags(tags)
+        ]):
             print(15*'=-=')
             print('VALIDATED !!!')
             print(15*'=-=')
