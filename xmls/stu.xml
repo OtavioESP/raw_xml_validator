@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<stuMessages xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="seu_caminho_aqui\stu.xsd" timeStamp="25/08/2009 21:00:00 GMT" messageID="56bdca48088610048fddba385e1cd5b8">
+  <stuMessage>
+    <esn>0-99990</esn>
+    <unixTime>1034268516</unixTime>
+    <gps>N</gps>
+    <payload length="9" source="pc" encoding="hex">0xC0560D72DA4AB2445A</payload>
+  </stuMessage>
+  <stuMessage>
+    <esn>0-99991</esn>
+    <unixTime>1034268521</unixTime>
+    <gps>N</gps>
+    <payload length="9" source="pc" encoding="hex">0xA14AA1DBDB818F9759</payload>
+  </stuMessage>
+</stuMessages>

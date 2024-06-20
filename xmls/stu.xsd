@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="stuMessages">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="stuMessage">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="1" maxOccurs="1" name="esn" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="1" name="uid" type="xs:string" />
+              <xs:element minOccurs="1" maxOccurs="1" name="unixTime" type="xs:string" />
+              <xs:element minOccurs="1" maxOccurs="1" name="gps" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="1" name="umn">
+                <xs:simpleType>
+                  <xs:restriction base="xs:int">
+                    <xs:minInclusive value="0" />
+                    <xs:maxInclusive value="15" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" maxOccurs="1" name="payload">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="length" type="xs:int" use="required" />
+                      <xs:attribute name="source" type="xs:string" use="required" />
+                      <xs:attribute name="encoding" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="timeStamp" type="xs:string" use="required" />
+      <xs:attribute name="messageID" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

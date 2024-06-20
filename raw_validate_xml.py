@@ -1,3 +1,4 @@
+import re
 
 class RawValidateXML:
     '''
@@ -7,8 +8,8 @@ class RawValidateXML:
     If you want a return file with the validated data,
     call run(true) or run(write_response=True).
     '''
-    def __init__(self):
-        self.FILE_PATH = "./teste.xml"
+    def __init__(self, file_path: str):
+        self.FILE_PATH = file_path
         self.FINAL_FILE_PATH = "./final_file.txt"
         self.FINAL_DATA = ""
 
@@ -16,72 +17,78 @@ class RawValidateXML:
         return tag.strip("\n").strip(" ")
 
     def _check_father_tags(self, tags: list) -> bool:
-        if f'{tags[0].replace("<", "</")}'== tags[ len(tags) - 1 ]:
+        pattern = r'<([^>\s]+)'
+        match_pai = re.search(pattern, tags[0]).group(1)
+        match_filho = re.search(pattern, tags[ len(tags) - 1 ]).group(1)
+        if match_pai == match_filho[1:]:
             return True
+
         raise ValueError("Elements not inside root tag")
 
+    def tag_type(self, line: str) -> int:
 
-    def _check_all_tags_close(self, tags: list) -> bool:
-        open_tags_list = []
-        close_tags_list = []
+        # line == ''
+        if not line:
+            return -2
 
-        for tag in tags:
-            if not "</" in tag and ">" in tag:
-                open_tags_list.append(tag)
-            elif "<" in tag and ">" in tag:
-                close_tags_list.append(tag)
+        if re.fullmatch(r'<(\w+)>', line):
+            return 0
 
-        for t in open_tags_list:
-            try:
-                close_tags_list.remove(f'{t.replace("<", "</")}')
-            except:
-                raise ValueError(f"Tag {t} dont have a corresponding close")
+        elif re.fullmatch(r'<(\w+)(\s+[^>]*)?>.+<\/\1>', line):
+            return 1
 
-        return True
+        elif re.fullmatch(r'<\/(\w+)>', line):
+            return 2
 
-    def _check_all_tags_open(self, tags: list) -> bool:
-        open_tags_list = []
-        close_tags_list = []
+        print(f'Tag {line} não está correta.')
+        return -1
 
-        for tag in tags:
-            if not "/" in tag:
-                open_tags_list.append(tag)
-            else: close_tags_list.append(tag)
 
-        for t in close_tags_list:
-            try:
-                open_tags_list.remove(t.replace("/", ""))
-            except:
-                raise ValueError(f"Tag {t} dont have a corresponding opening")
-
-        return True
-
-    def _check_children_tags(self, tags: list) -> bool:
-        tags_depth = {}
-        depth_counter = 0
-
+    def _check_all_tags_open_close(self, tags: list) -> bool:
         tags.pop(0)
         tags.pop(len(tags) - 1)
 
+        open_tags_list = {}
+        close_tags_list = {}
+
+        pattern_open_tag = r'<(\w+)(?:\s+[^>]+)*>'
+        pattern_close_tag = r'<\/(\w+)>'
+
+        profundidade = 0
+
         for tag in tags:
-            if all(["<" in tag, ">" in tag, not "</" in tag]):
-                depth_counter += 1
-                tags_depth[tag] = depth_counter
-                self.FINAL_DATA += f'{tag}: '
+            tag_type = self.tag_type(tag)
+            if tag_type == 0:
+                tag_name = re.match(pattern_open_tag, tag).group(1)
+                profundidade += 1
+                open_tags_list[tag_name] = profundidade
 
-            if all(["</" in tag, ">" in tag]):
-                tags_depth[tag] = depth_counter
-                depth_counter -= 1
-                self.FINAL_DATA += '\n'
+            elif tag_type == 2:
+                tag_name = re.match(pattern_close_tag, tag).group(1)
+                close_tags_list[tag_name] = profundidade
+                profundidade -= 1
 
-            if not all(["<" in tag,  ">"in tag]) and not "</" in tag:
-                self.FINAL_DATA += f'{tag}\n '
-        for tag in tags_depth:
-            if "<"in tag and not "</" in tag:
-                if tags_depth[tag] == tags_depth[tag.replace("<", "</")]:
-                    continue
-                else:
-                    return False
+            elif tag_type == -1:
+                return False
+
+
+        set1 = set(open_tags_list.items())
+        set2 = set(close_tags_list.items())
+
+        # se o XML nao foi valido, os sets serao diferentes
+        # {tag1: 1 tag2: 2} - {tag1: 1 tag2: 2} == set()
+        # {tag1: 1 tag2: 3} - {tag1: 1 tag2: 2} == set(tag2: 3)
+        # Retorna as tags ou valores diferentes de um set ou outro
+        if len(set1 - set2) != 0:
+            print(f'O problema esta na tag: {set1 - set2}, que não fecha.')
+            return False
+
+        if len(set2 - set1) != 0:
+            print(f'O problema esta na tag: {set2 - set1}, que não abre.')
+            return False
+
+        print(len(set1 - set2) == 0 and len(set2 - set1) == 0)
+
         return True
 
     def write_txt(self):
@@ -97,25 +104,21 @@ class RawValidateXML:
 
         return tag_list
 
+    def _print_tag_content(self, tags):
+        pattern = r'<(\w+)>(.*?)</\1>'
+        for item in tags:
+            matches = re.findall(pattern, item)
+            for tag, data in matches:
+                print(f"{tag}: {data.strip()}")
 
-    def run(self, write_response=False) -> bool:
+    def run(self, write_response=False):
         tags = self.read_file()
+        tags.pop(0)
 
-        if all([
-            self._check_father_tags(tags),
-            self._check_all_tags_close(tags),
-            self._check_all_tags_open(tags),
-            self._check_children_tags(tags)
-        ]):
-            print(15*'=-=')
-            print('VALIDATED !!!')
-            print(15*'=-=')
+        if all([self._check_father_tags(tags),self._check_all_tags_open_close(tags)]):
+            self._print_tag_content(tags)
+            print("VALIDADO")
+            return
 
-            if write_response:
-                self.write_txt()
-
-            print(self.FINAL_DATA)
-            return True
-        else:
-            print('An error ocurred on validation !')
-            return False
+        print("ERRO")
+        return
